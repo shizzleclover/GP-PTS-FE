@@ -9,7 +9,7 @@ import Link from 'next/link'
 export default function TeacherDashboard() {
   const stats = [
     { title: 'Courses', value: '3', description: 'CSC 301, CSC 305, MTH 201', icon: <BookOpen className="h-8 w-8" />, color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600' },
-    { title: 'Students', value: '84', description: 'Total across all courses', icon: <Users className="h-8 w-8" />, color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' },
+    { title: 'Students', value: '84', description: 'Total across all courses', icon: <Users className="h-8 w-8" />, color: 'bg-emerald-100 dark:bg-emerald-500/30 text-emerald-500' },
     { title: 'Unread Messages', value: '12', description: 'From students and parents', icon: <MessageSquare className="h-8 w-8" />, color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600' },
     { title: 'Pending Tasks', value: '5', description: 'Grades to submit', icon: <Calendar className="h-8 w-8" />, color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600' },
   ]
@@ -96,7 +96,7 @@ export default function TeacherDashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-emerald-600" />
+              <MessageSquare className="h-5 w-5 text-emerald-500" />
               Recent Messages
             </CardTitle>
           </CardHeader>

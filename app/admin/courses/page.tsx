@@ -69,7 +69,7 @@ export default function CoursesPage() {
   const getGradeColor = (grade: string) => {
     const colors: Record<string, string> = {
       '9': 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
-      '10': 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
+      '10': 'bg-emerald-100 dark:bg-emerald-500/30 text-emerald-500 dark:text-emerald-400',
       '11': 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
       '12': 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400',
     }

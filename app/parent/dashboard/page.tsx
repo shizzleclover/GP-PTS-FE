@@ -45,7 +45,7 @@ export default function ParentDashboard() {
               <p className="text-xs text-muted-foreground font-medium">Program</p>
               <p className="text-sm font-bold text-foreground mt-1">{child.program}</p>
             </div>
-            <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+            <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/20">
               <p className="text-xs text-muted-foreground font-medium">CGPA</p>
               <p className="text-lg font-bold text-foreground mt-1">{child.gpa}</p>
             </div>
@@ -68,7 +68,7 @@ export default function ParentDashboard() {
             <CardDescription>Latest CGPA</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-emerald-600">{child.gpa}</div>
+            <div className="text-3xl font-bold text-emerald-500">{child.gpa}</div>
             <p className="text-xs text-muted-foreground mt-1">Strong performance</p>
           </CardContent>
         </Card>
@@ -122,7 +122,7 @@ export default function ParentDashboard() {
                 <p className="text-xs text-muted-foreground">Mid-term exam</p>
               </div>
               <div className="text-right">
-                <p className="text-lg font-bold text-emerald-600">92%</p>
+                <p className="text-lg font-bold text-emerald-500">92%</p>
                 <p className="text-xs text-muted-foreground">Excellent</p>
               </div>
             </div>
@@ -132,7 +132,7 @@ export default function ParentDashboard() {
                 <p className="text-xs text-muted-foreground">Group project</p>
               </div>
               <div className="text-right">
-                <p className="text-lg font-bold text-emerald-600">88%</p>
+                <p className="text-lg font-bold text-emerald-500">88%</p>
                 <p className="text-xs text-muted-foreground">Very Good</p>
               </div>
             </div>
@@ -193,18 +193,18 @@ export default function ParentDashboard() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-emerald-600" />
+            <AlertCircle className="h-5 w-5 text-emerald-500" />
             Behavior & Discipline
           </CardTitle>
           <CardDescription>School conduct records</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="p-4 rounded-lg border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/10">
+          <div className="p-4 rounded-lg border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-500/10">
             <div className="flex items-start gap-3">
-              <div className="w-3 h-3 rounded-full bg-emerald-600 mt-2 flex-shrink-0" />
+              <div className="w-3 h-3 rounded-full bg-emerald-500 mt-2 flex-shrink-0" />
               <div>
-                <p className="font-medium text-sm text-emerald-900 dark:text-emerald-100">Excellent Conduct</p>
-                <p className="text-sm text-emerald-800 dark:text-emerald-200 mt-1">
+                <p className="font-medium text-sm text-emerald-600 dark:text-emerald-100">Excellent Conduct</p>
+                <p className="text-sm text-emerald-600 dark:text-emerald-200 mt-1">
                   Emma is demonstrating positive behavior and showing respect to peers and faculty.
                 </p>
               </div>

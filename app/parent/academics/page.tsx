@@ -69,7 +69,7 @@ export default function ParentAcademicsPage() {
   ]
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+    if (score >= 90) return 'bg-emerald-100 dark:bg-emerald-500/30 text-emerald-500 dark:text-emerald-400'
     if (score >= 75) return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
     if (score >= 60) return 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
     return 'bg-destructive/10 text-destructive'
@@ -77,7 +77,7 @@ export default function ParentAcademicsPage() {
 
   const getGradeColor = (grade: string) => {
     switch (grade) {
-      case 'A': return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+      case 'A': return 'bg-emerald-100 dark:bg-emerald-500/30 text-emerald-500 dark:text-emerald-400'
       case 'B': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
       case 'C': return 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
       case 'D': return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
@@ -105,9 +105,9 @@ export default function ParentAcademicsPage() {
             <CardDescription>Current CGPA</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-emerald-600">{child.cgpa}</div>
+            <div className="text-4xl font-bold text-emerald-500">{child.cgpa}</div>
             <div className="mt-3 w-full bg-muted rounded-full h-2">
-              <div className="bg-emerald-600 h-2 rounded-full" style={{ width: '85%' }} />
+              <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '85%' }} />
             </div>
             <p className="text-xs text-muted-foreground mt-2">Out of 5.0</p>
           </CardContent>
@@ -130,9 +130,9 @@ export default function ParentAcademicsPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-6 w-6 text-emerald-600" />
+              <TrendingUp className="h-6 w-6 text-emerald-500" />
               <div>
-                <p className="text-3xl font-bold text-emerald-600">+0.25</p>
+                <p className="text-3xl font-bold text-emerald-500">+0.25</p>
                 <p className="text-xs text-muted-foreground">vs. last semester</p>
               </div>
             </div>

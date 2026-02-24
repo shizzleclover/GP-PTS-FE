@@ -33,7 +33,7 @@ export default function TeacherClassesPage() {
       section: 'Section B',
       students: 30,
       schedule: 'TTh 10:30 AM',
-      color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
+      color: 'bg-emerald-100 dark:bg-emerald-500/30 text-emerald-500 dark:text-emerald-400',
     },
     {
       id: '3',
@@ -130,7 +130,7 @@ export default function TeacherClassesPage() {
               <p className="text-sm text-muted-foreground">Pending Grades</p>
             </div>
             <div className="p-4 rounded-lg border border-border text-center hover:bg-muted/50 transition-colors cursor-pointer">
-              <p className="text-3xl font-bold text-emerald-600 mb-1">3</p>
+              <p className="text-3xl font-bold text-emerald-500 mb-1">3</p>
               <p className="text-sm text-muted-foreground">Classes Teaching</p>
             </div>
           </div>

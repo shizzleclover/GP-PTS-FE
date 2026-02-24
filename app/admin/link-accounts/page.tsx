@@ -209,8 +209,8 @@ export default function LinkAccountsPage() {
                     <TableCell>{link.linkedDate}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-emerald-600" />
-                        <span className="text-sm text-emerald-600 font-medium">Active</span>
+                        <CheckCircle className="h-4 w-4 text-emerald-500" />
+                        <span className="text-sm text-emerald-500 font-medium">Active</span>
                       </div>
                     </TableCell>
                     <TableCell>

@@ -105,7 +105,7 @@ export default function TeacherAttendancePage() {
             <CardDescription>Present</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-emerald-600">{presentCount}</div>
+            <div className="text-3xl font-bold text-emerald-500">{presentCount}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {records.length > 0 ? ((presentCount / records.length) * 100).toFixed(0) : 0}%
             </p>

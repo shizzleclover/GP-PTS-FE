@@ -18,10 +18,10 @@ export default function ParentDisciplinePage() {
       </div>
 
       {/* Overall Status */}
-      <Card className="border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/10">
+      <Card className="border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-500/10">
         <CardHeader className="pb-3">
           <div className="flex items-start gap-3">
-            <div className="p-3 rounded-full bg-emerald-600">
+            <div className="p-3 rounded-full bg-emerald-500">
               <CheckCircle className="h-6 w-6 text-white" />
             </div>
             <div className="flex-1">
@@ -44,7 +44,7 @@ export default function ParentDisciplinePage() {
             <CardDescription>Discipline Records</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-emerald-600">0</div>
+            <div className="text-4xl font-bold text-emerald-500">0</div>
             <p className="text-xs text-muted-foreground mt-2">No incidents recorded</p>
           </CardContent>
         </Card>
@@ -54,7 +54,7 @@ export default function ParentDisciplinePage() {
             <CardDescription>Warnings</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-emerald-600">0</div>
+            <div className="text-4xl font-bold text-emerald-500">0</div>
             <p className="text-xs text-muted-foreground mt-2">No warnings issued</p>
           </CardContent>
         </Card>
@@ -77,8 +77,8 @@ export default function ParentDisciplinePage() {
           <CardDescription>Recognition from teachers and staff</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex items-start gap-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-            <CheckCircle className="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-800">
+            <CheckCircle className="h-5 w-5 text-emerald-500 mt-0.5 flex-shrink-0" />
             <div>
               <p className="font-medium text-sm text-foreground">Excellent Team Player</p>
               <p className="text-sm text-muted-foreground mt-1">
@@ -88,8 +88,8 @@ export default function ParentDisciplinePage() {
             </div>
           </div>
 
-          <div className="flex items-start gap-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-            <CheckCircle className="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-800">
+            <CheckCircle className="h-5 w-5 text-emerald-500 mt-0.5 flex-shrink-0" />
             <div>
               <p className="font-medium text-sm text-foreground">Respectful Classroom Behavior</p>
               <p className="text-sm text-muted-foreground mt-1">
@@ -99,8 +99,8 @@ export default function ParentDisciplinePage() {
             </div>
           </div>
 
-          <div className="flex items-start gap-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-            <CheckCircle className="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-800">
+            <CheckCircle className="h-5 w-5 text-emerald-500 mt-0.5 flex-shrink-0" />
             <div>
               <p className="font-medium text-sm text-foreground">Outstanding Participation</p>
               <p className="text-sm text-muted-foreground mt-1">
@@ -125,7 +125,7 @@ export default function ParentDisciplinePage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg border border-border text-center">
               <p className="text-xs text-muted-foreground font-medium">Days Present</p>
-              <p className="text-3xl font-bold text-emerald-600 mt-2">94</p>
+              <p className="text-3xl font-bold text-emerald-500 mt-2">94</p>
             </div>
             <div className="p-4 rounded-lg border border-border text-center">
               <p className="text-xs text-muted-foreground font-medium">Days Absent</p>

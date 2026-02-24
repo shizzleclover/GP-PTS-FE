@@ -48,7 +48,7 @@ export default function AdminDashboard() {
   const getColorClasses = (color: string) => {
     const colors: Record<string, string> = {
       blue: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
-      emerald: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
+      emerald: 'bg-emerald-100 dark:bg-emerald-500/30 text-emerald-500 dark:text-emerald-400',
       amber: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
       purple: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
     }
@@ -116,7 +116,7 @@ export default function AdminDashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-emerald-600" />
+              <BookOpen className="h-5 w-5 text-emerald-500" />
               Course Management
             </CardTitle>
             <CardDescription>
@@ -195,7 +195,7 @@ export default function AdminDashboard() {
                 <p className="font-medium text-sm text-foreground">New user registered</p>
                 <p className="text-xs text-muted-foreground">Sarah Johnson (Parent) - 2 hours ago</p>
               </div>
-              <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium">Success</span>
+              <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/30 text-emerald-500 dark:text-emerald-400 font-medium">Success</span>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border">
               <div>
@@ -209,7 +209,7 @@ export default function AdminDashboard() {
                 <p className="font-medium text-sm text-foreground">Account linked successfully</p>
                 <p className="text-xs text-muted-foreground">Parent John Smith → Student Emma Smith - 1 day ago</p>
               </div>
-              <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium">Linked</span>
+              <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/30 text-emerald-500 dark:text-emerald-400 font-medium">Linked</span>
             </div>
           </div>
         </CardContent>

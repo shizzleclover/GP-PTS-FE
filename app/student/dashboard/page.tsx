@@ -17,7 +17,7 @@ export default function StudentDashboard() {
     }
 
     const stats = [
-        { title: 'CGPA', value: student.cgpa, description: 'Cumulative GPA', icon: <TrendingUp className="h-8 w-8" />, color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' },
+        { title: 'CGPA', value: student.cgpa, description: 'Cumulative GPA', icon: <TrendingUp className="h-8 w-8" />, color: 'bg-emerald-100 dark:bg-emerald-500/30 text-emerald-500' },
         { title: 'Courses', value: '6', description: 'Enrolled this semester', icon: <BookOpen className="h-8 w-8" />, color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600' },
         { title: 'Attendance', value: student.attendance, description: 'This semester', icon: <Calendar className="h-8 w-8" />, color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600' },
         { title: 'Messages', value: '1', description: 'Unread from lecturers', icon: <MessageSquare className="h-8 w-8" />, color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600' },
@@ -52,7 +52,7 @@ export default function StudentDashboard() {
                             <p className="text-xs text-muted-foreground font-medium">Program</p>
                             <p className="text-sm font-bold text-foreground mt-1">{student.program}</p>
                         </div>
-                        <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+                        <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/20">
                             <p className="text-xs text-muted-foreground font-medium">CGPA</p>
                             <p className="text-lg font-bold text-foreground mt-1">{student.cgpa}</p>
                         </div>
@@ -141,7 +141,7 @@ export default function StudentDashboard() {
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                            <TrendingUp className="h-5 w-5 text-emerald-600" />
+                            <TrendingUp className="h-5 w-5 text-emerald-500" />
                             Recent Grades
                         </CardTitle>
                         <CardDescription>Latest assessment results</CardDescription>
@@ -153,7 +153,7 @@ export default function StudentDashboard() {
                                 <p className="text-xs text-muted-foreground">CSC 301</p>
                             </div>
                             <div className="text-right">
-                                <p className="text-lg font-bold text-emerald-600">85%</p>
+                                <p className="text-lg font-bold text-emerald-500">85%</p>
                                 <p className="text-xs text-muted-foreground">A</p>
                             </div>
                         </div>
@@ -173,7 +173,7 @@ export default function StudentDashboard() {
                                 <p className="text-xs text-muted-foreground">MTH 201</p>
                             </div>
                             <div className="text-right">
-                                <p className="text-lg font-bold text-emerald-600">92%</p>
+                                <p className="text-lg font-bold text-emerald-500">92%</p>
                                 <p className="text-xs text-muted-foreground">A</p>
                             </div>
                         </div>

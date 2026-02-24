@@ -18,14 +18,14 @@ export default function StudentAttendancePage() {
     )
 
     const getAttendanceColor = (percentage: number) => {
-        if (percentage >= 90) return 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30'
+        if (percentage >= 90) return 'text-emerald-500 bg-emerald-100 dark:bg-emerald-500/30'
         if (percentage >= 75) return 'text-blue-600 bg-blue-100 dark:bg-blue-900/30'
         if (percentage >= 60) return 'text-amber-600 bg-amber-100 dark:bg-amber-900/30'
         return 'text-destructive bg-destructive/10'
     }
 
     const getAttendanceBarColor = (percentage: number) => {
-        if (percentage >= 90) return 'bg-emerald-600'
+        if (percentage >= 90) return 'bg-emerald-500'
         if (percentage >= 75) return 'bg-blue-600'
         if (percentage >= 60) return 'bg-amber-600'
         return 'bg-destructive'

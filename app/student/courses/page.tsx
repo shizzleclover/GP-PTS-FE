@@ -47,9 +47,9 @@ export default function StudentCoursesPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-center gap-4">
-                            <div className="flex-1 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                            <div className="flex-1 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-800">
                                 <p className="text-sm font-medium text-muted-foreground">Enrolled Courses</p>
-                                <p className="text-3xl font-bold text-emerald-600 mt-1">{enrolledCourses.length}</p>
+                                <p className="text-3xl font-bold text-emerald-500 mt-1">{enrolledCourses.length}</p>
                             </div>
                             <div className="flex-1 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
                                 <p className="text-sm font-medium text-muted-foreground">Total Units</p>

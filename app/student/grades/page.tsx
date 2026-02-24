@@ -78,7 +78,7 @@ export default function StudentGradesPage() {
 
     const getGradeColor = (grade: string) => {
         switch (grade) {
-            case 'A': return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+            case 'A': return 'bg-emerald-100 dark:bg-emerald-500/30 text-emerald-500 dark:text-emerald-400'
             case 'B': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
             case 'C': return 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
             case 'D': return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
@@ -100,18 +100,18 @@ export default function StudentGradesPage() {
             </div>
 
             {/* CGPA Overview */}
-            <Card className="border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-900/10">
+            <Card className="border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-500/10">
                 <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                         <div className="flex items-center gap-4">
-                            <div className="p-4 rounded-full bg-emerald-100 dark:bg-emerald-900">
-                                <Award className="h-10 w-10 text-emerald-600 dark:text-emerald-400" />
+                            <div className="p-4 rounded-full bg-emerald-100 dark:bg-emerald-500">
+                                <Award className="h-10 w-10 text-emerald-500 dark:text-emerald-400" />
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-emerald-800 dark:text-emerald-200">Current CGPA</p>
+                                <p className="text-sm font-medium text-emerald-600 dark:text-emerald-200">Current CGPA</p>
                                 <div className="flex items-baseline gap-2">
-                                    <h2 className="text-5xl font-bold text-emerald-600 dark:text-emerald-400">{cgpa}</h2>
-                                    <span className="text-xl text-emerald-600/60 dark:text-emerald-400/60">/ 5.00</span>
+                                    <h2 className="text-5xl font-bold text-emerald-500 dark:text-emerald-400">{cgpa}</h2>
+                                    <span className="text-xl text-emerald-500/60 dark:text-emerald-400/60">/ 5.00</span>
                                 </div>
                             </div>
                         </div>

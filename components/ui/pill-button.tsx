@@ -12,7 +12,7 @@ const pillButtonVariants = cva(
         outline: 'border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground active:bg-primary/90',
         ghost: 'text-foreground hover:bg-muted active:bg-muted/80',
         destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/80',
-        success: 'bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800',
+        success: 'bg-emerald-500 text-white hover:bg-emerald-500 active:bg-emerald-500',
       },
       size: {
         sm: 'px-4 py-2 text-xs h-8',
