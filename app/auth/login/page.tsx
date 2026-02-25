@@ -29,6 +29,7 @@ export default function LoginPage() {
         if (email.includes('admin')) role = 'admin'
         else if (email.includes('teacher') || email.includes('lecturer') || email.includes('professor')) role = 'teacher'
         else if (email.includes('student')) role = 'student'
+        else if (email.includes('registry')) role = 'registry'
 
         // Store user session (mock)
         sessionStorage.setItem('user', JSON.stringify({
@@ -41,6 +42,7 @@ export default function LoginPage() {
         if (role === 'admin') router.push('/admin/dashboard')
         else if (role === 'teacher') router.push('/teacher/dashboard')
         else if (role === 'student') router.push('/student/dashboard')
+        else if (role === 'registry') router.push('/registry/dashboard')
         else router.push('/parent/dashboard')
       } else {
         setError('Please enter email and password')
@@ -155,6 +157,7 @@ export default function LoginPage() {
                 <p className="text-xs font-medium text-foreground mb-2">Demo Credentials:</p>
                 <div className="space-y-1 text-xs text-muted-foreground">
                   <p>Admin: <code className="bg-background px-1 rounded">admin@university.edu</code></p>
+                  <p>Registry: <code className="bg-background px-1 rounded">registry@university.edu</code></p>
                   <p>Lecturer: <code className="bg-background px-1 rounded">teacher@university.edu</code></p>
                   <p>Student: <code className="bg-background px-1 rounded">student@university.edu</code></p>
                   <p>Parent: <code className="bg-background px-1 rounded">parent@university.edu</code></p>
