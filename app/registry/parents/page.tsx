@@ -257,9 +257,9 @@ export default function RegistryParentsPage() {
                                 existingLinks.map((link: any) => (
                                     <div key={link.id} className="flex items-center justify-between gap-2 border rounded-md p-2">
                                         <div className="min-w-0">
-                                            <p className="text-xs font-medium truncate">{link.parentEmail} -> {link.studentEmail}</p>
+                                            <p className="text-xs font-medium truncate">{link.parentEmail} &rarr; {link.studentEmail}</p>
                                             <p className="text-[11px] text-muted-foreground truncate">
-                                                {link.parentName} -> {link.studentName} ({link.matric})
+                                                {link.parentName} &rarr; {link.studentName} ({link.matric})
                                             </p>
                                         </div>
                                         <PillButton
