@@ -5,43 +5,63 @@ import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { PillButton } from '@/components/ui/pill-button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Search, Plus, Link as LinkIcon, MoreVertical, Edit2, Trash2, Users } from 'lucide-react'
 
 export default function RegistryParentsPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [isRegistering, setIsRegistering] = useState(false)
+    const [isLinking, setIsLinking] = useState(false)
+    const [selectedParentId, setSelectedParentId] = useState('')
+    const [selectedStudentId, setSelectedStudentId] = useState('')
 
     const [parents, setParents] = useState<any[]>([])
+    const [students, setStudents] = useState<any[]>([])
+    const [allUsers, setAllUsers] = useState<any[]>([])
     const [formData, setFormData] = useState({
         firstName: '', lastName: '', email: '', phone: ''
     })
 
-    const loadParents = async () => {
+    const loadData = async () => {
         try {
-            const res = await apiFetch('/users')
-            if (res.isMock) {
-                setParents([
-                    { id: 'PAR001', name: 'Michael Johnson', email: 'michael.j@example.com', phone: '+1 (555) 123-4567', students: 2, status: 'Active' },
-                    { id: 'PAR002', name: 'Sarah Williams', email: 'swilliams@example.com', phone: '+1 (555) 987-6543', students: 1, status: 'Active' },
-                ])
-            } else {
-                const parentsList = res.data.data.filter((u: any) => u.role === 'parent')
-                setParents(parentsList.map((p: any) => ({
-                    id: p._id.substring(0, 8).toUpperCase(),
-                    name: `${p.firstName} ${p.lastName}`,
-                    email: p.email,
-                    phone: 'N/A',
-                    students: 0,
-                    status: 'Active'
-                })))
-            }
+            const [usersRes, studentsRes] = await Promise.all([
+                apiFetch('/users'),
+                apiFetch('/students')
+            ])
+
+            const users = usersRes.data?.data || []
+            const studentsRaw = studentsRes.data?.data || []
+
+            setAllUsers(users)
+            setStudents(studentsRaw)
+
+            const parentStudentCount = new Map<string, number>()
+            studentsRaw.forEach((s: any) => {
+                const parentIds = (s.parentIds || []).map((p: any) => (typeof p === 'string' ? p : p?._id)).filter(Boolean)
+                parentIds.forEach((pid: string) => {
+                    parentStudentCount.set(pid, (parentStudentCount.get(pid) || 0) + 1)
+                })
+            })
+
+            const parentsList = users.filter((u: any) => u.role === 'parent')
+            setParents(parentsList.map((p: any) => ({
+                id: p._id.substring(0, 8).toUpperCase(),
+                userId: p._id,
+                name: `${p.firstName} ${p.lastName}`,
+                email: p.email || p.username || 'N/A',
+                phone: 'N/A',
+                students: parentStudentCount.get(p._id) || 0,
+                status: 'Active'
+            })))
         } catch (err) {
             console.error('Failed to load parents', err)
         }
     }
 
     useEffect(() => {
-        loadParents()
+        loadData()
     }, [])
 
     const handleRegister = async (e: React.FormEvent) => {
@@ -51,7 +71,7 @@ export default function RegistryParentsPage() {
                 method: 'POST',
                 body: JSON.stringify({
                     username: formData.email,
-                    password: 'TempPass123!',
+                    password: 'password',
                     role: 'parent',
                     firstName: formData.firstName,
                     lastName: formData.lastName,
@@ -61,10 +81,67 @@ export default function RegistryParentsPage() {
 
             setIsRegistering(false)
             setFormData({ firstName: '', lastName: '', email: '', phone: '' })
-            loadParents()
+            loadData()
         } catch (err) {
             console.error('Registration failed', err)
             alert('Failed to register parent.')
+        }
+    }
+
+    const handleCreateLink = async () => {
+        if (!selectedParentId || !selectedStudentId) {
+            alert('Please select both a parent email and a student email.')
+            return
+        }
+        try {
+            const student = students.find((s: any) => s._id === selectedStudentId)
+            if (!student) {
+                alert('Selected student was not found.')
+                return
+            }
+
+            const existingParentIds = (student.parentIds || [])
+                .map((p: any) => (typeof p === 'string' ? p : p?._id))
+                .filter(Boolean)
+
+            const parentIds = Array.from(new Set([...existingParentIds, selectedParentId]))
+
+            await apiFetch(`/students/${selectedStudentId}`, {
+                method: 'PUT',
+                body: JSON.stringify({ parentIds })
+            })
+
+            setIsLinking(false)
+            setSelectedParentId('')
+            setSelectedStudentId('')
+            loadData()
+        } catch (err) {
+            console.error('Failed to link parent and student', err)
+            alert('Failed to create link.')
+        }
+    }
+
+    const handleUnlink = async (studentId: string, parentId: string) => {
+        try {
+            const student = students.find((s: any) => s._id === studentId)
+            if (!student) {
+                alert('Selected link is invalid.')
+                return
+            }
+
+            const updatedParentIds = (student.parentIds || [])
+                .map((p: any) => (typeof p === 'string' ? p : p?._id))
+                .filter((pid: string) => pid && pid !== parentId)
+
+            await apiFetch(`/students/${studentId}`, {
+                method: 'PUT',
+                body: JSON.stringify({ parentIds: updatedParentIds })
+            })
+
+            loadData()
+        } catch (err) {
+            console.error('Failed to unlink parent and student', err)
+            alert('Failed to unlink account.')
         }
     }
 
@@ -74,6 +151,37 @@ export default function RegistryParentsPage() {
         parent.email.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
+    const parentOptions = allUsers.filter((u: any) => u.role === 'parent')
+    const studentOptions = students
+        .map((s: any) => {
+            const studentUser = allUsers.find((u: any) => u._id === s.userId && u.role === 'student')
+            return {
+                id: s._id,
+                label: `${s.firstName} ${s.lastName}`,
+                email: studentUser?.email || studentUser?.username || 'no-email',
+                studentId: s.studentId
+            }
+        })
+        .filter((s: any) => s.email !== 'no-email')
+
+    const existingLinks = students.flatMap((s: any) => {
+        const parentIds = (s.parentIds || []).map((p: any) => (typeof p === 'string' ? p : p?._id)).filter(Boolean)
+        return parentIds.map((parentId: string) => {
+            const parent = allUsers.find((u: any) => u._id === parentId && u.role === 'parent')
+            const studentUser = allUsers.find((u: any) => u._id === s.userId && u.role === 'student')
+            return {
+                id: `${parentId}-${s._id}`,
+                parentId,
+                studentId: s._id,
+                parentEmail: parent?.email || parent?.username || 'N/A',
+                parentName: parent ? `${parent.firstName} ${parent.lastName}` : 'Unknown Parent',
+                studentEmail: studentUser?.email || studentUser?.username || 'N/A',
+                studentName: `${s.firstName} ${s.lastName}`,
+                matric: s.studentId
+            }
+        })
+    })
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -82,12 +190,93 @@ export default function RegistryParentsPage() {
                     <p className="text-muted-foreground mt-1">Manage parent accounts and family links.</p>
                 </div>
                 {!isRegistering && (
-                    <PillButton onClick={() => setIsRegistering(true)} className="flex items-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        Register Parent
-                    </PillButton>
+                    <div className="flex items-center gap-2">
+                        <PillButton variant="secondary" onClick={() => setIsLinking(true)} className="flex items-center gap-2">
+                            <LinkIcon className="h-4 w-4" />
+                            Link Accounts
+                        </PillButton>
+                        <PillButton onClick={() => setIsRegistering(true)} className="flex items-center gap-2">
+                            <Plus className="h-4 w-4" />
+                            Register Parent
+                        </PillButton>
+                    </div>
                 )}
             </div>
+
+            <Dialog open={isLinking} onOpenChange={setIsLinking}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Link Parent to Student</DialogTitle>
+                        <DialogDescription>
+                            Select parent and student accounts by email.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="parentEmail">Parent Email</Label>
+                            <Select value={selectedParentId} onValueChange={setSelectedParentId}>
+                                <SelectTrigger id="parentEmail">
+                                    <SelectValue placeholder="Select parent email" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {parentOptions.map((p: any) => (
+                                        <SelectItem key={p._id} value={p._id}>
+                                            {p.email || p.username}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="studentEmail">Student Email</Label>
+                            <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
+                                <SelectTrigger id="studentEmail">
+                                    <SelectValue placeholder="Select student email" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {studentOptions.map((s: any) => (
+                                        <SelectItem key={s.id} value={s.id}>
+                                            {s.email} ({s.label} - {s.studentId})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <PillButton variant="outline" onClick={() => setIsLinking(false)}>Cancel</PillButton>
+                        <PillButton onClick={handleCreateLink}>Create Link</PillButton>
+                    </DialogFooter>
+
+                    <div className="pt-4 border-t space-y-2">
+                        <p className="text-sm font-medium">Existing Links</p>
+                        <div className="max-h-52 overflow-y-auto space-y-2 pr-1">
+                            {existingLinks.length === 0 ? (
+                                <p className="text-xs text-muted-foreground">No parent-student links found.</p>
+                            ) : (
+                                existingLinks.map((link: any) => (
+                                    <div key={link.id} className="flex items-center justify-between gap-2 border rounded-md p-2">
+                                        <div className="min-w-0">
+                                            <p className="text-xs font-medium truncate">{link.parentEmail} -> {link.studentEmail}</p>
+                                            <p className="text-[11px] text-muted-foreground truncate">
+                                                {link.parentName} -> {link.studentName} ({link.matric})
+                                            </p>
+                                        </div>
+                                        <PillButton
+                                            size="sm"
+                                            variant="ghost"
+                                            className="text-destructive hover:text-destructive"
+                                            onClick={() => handleUnlink(link.studentId, link.parentId)}
+                                        >
+                                            Unlink
+                                        </PillButton>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             {isRegistering ? (
                 <Card className="border-blue-500/20 shadow-md">
@@ -126,14 +315,17 @@ export default function RegistryParentsPage() {
                                         <LinkIcon className="h-4 w-4 text-blue-500" />
                                         <label className="text-sm font-medium">Link to Students (Optional)</label>
                                     </div>
-                                    <Input type="text" placeholder="Search and select student ID or Name..." />
-                                    <p className="text-xs text-muted-foreground mt-2">You can link students now, or do it later from the Admin {"->"} Link Accounts page.</p>
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                        Use the Link Accounts button above to connect parent and student accounts by email.
+                                    </p>
                                 </div>
 
                                 <div className="space-y-2 md:col-span-2">
                                     <label className="text-sm font-medium">Temporary Password</label>
-                                    <Input type="text" defaultValue="TempPass123!" readOnly className="bg-muted text-muted-foreground" />
-                                    <p className="text-xs text-muted-foreground">This password will be sent to the parent. They must change it upon first login.</p>
+                                    <Input type="text" defaultValue="password" readOnly className="bg-muted text-muted-foreground" />
+                                    <p className="text-xs text-muted-foreground">
+                                        Parent login is authorized with the child matric number. Keep this as password during setup.
+                                    </p>
                                 </div>
                             </div>
 
