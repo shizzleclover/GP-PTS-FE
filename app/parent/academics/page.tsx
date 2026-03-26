@@ -43,7 +43,7 @@ export default function ParentAcademicsPage() {
         if (!uStr) return
         const user = JSON.parse(uStr)
 
-        const isMock = localStorage.getItem('useMockData') === 'true'
+        const isMock = false
         if (isMock) {
           setChild({ name: 'Emma Smith' })
           setGradeHistory([{

@@ -35,7 +35,7 @@ export default function CrossSchoolPage() {
   useEffect(() => {
     const loadLecturers = async () => {
       try {
-        const isMock = localStorage.getItem('useMockData') === 'true'
+        const isMock = false
         if (isMock) {
           setLecturers([
             { _id: '1', firstName: 'Dr. Amaka', lastName: 'Obi', department: 'Computer Science', username: 'amaka@uni.edu' },
@@ -70,7 +70,7 @@ export default function CrossSchoolPage() {
     if (!selectedLecturer) return
     const loadMessages = async () => {
       try {
-        const isMock = localStorage.getItem('useMockData') === 'true'
+        const isMock = false
         if (isMock) {
           setMessages([
             { _id: 'm1', body: 'Hello, I wanted to discuss the upcoming faculty seminar.', senderId: { _id: selectedLecturer._id, firstName: selectedLecturer.firstName }, createdAt: new Date(Date.now() - 3600000).toISOString() },

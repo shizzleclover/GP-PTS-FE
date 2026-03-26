@@ -26,7 +26,7 @@ export default function ParentDashboard() {
         const user = JSON.parse(uStr)
         if (mounted) setParentName(user.firstName || user.name || 'Parent')
 
-        const isMock = localStorage.getItem('useMockData') === 'true'
+        const isMock = false
         if (isMock) {
           if (mounted) {
             setChild({

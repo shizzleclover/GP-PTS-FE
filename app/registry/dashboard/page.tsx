@@ -18,7 +18,7 @@ export default function RegistryDashboardPage() {
     useEffect(() => {
         const loadStats = async () => {
             try {
-                const isMock = localStorage.getItem('useMockData') === 'true'
+                const isMock = false
                 if (isMock) {
                     setStats(prev => prev.map((s, i) => ({
                         ...s,

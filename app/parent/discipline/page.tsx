@@ -23,7 +23,7 @@ export default function ParentDisciplinePage() {
         if (!uStr) return;
         const user = JSON.parse(uStr)
 
-        const isMock = localStorage.getItem('useMockData') === 'true'
+        const isMock = false
         if (isMock) {
           if (mounted) {
             setChild({ name: 'Emma Smith', program: 'Computer Science' })
@@ -69,7 +69,15 @@ export default function ParentDisciplinePage() {
         ])
 
         if (!discRes.isMock) {
-          setIncidents(discRes.data.data || [])
+          const raw = discRes.data.data || []
+          // Backend discipline fields are `incidentType` and `date`, but UI expects
+          // `type` and `dateOfIncident`. Normalize for consistent rendering.
+          const normalized = raw.map((i: any) => ({
+            ...i,
+            type: i.type ?? i.incidentType,
+            dateOfIncident: i.dateOfIncident ?? i.date
+          }))
+          setIncidents(normalized)
         }
 
         if (!attRes.isMock) {

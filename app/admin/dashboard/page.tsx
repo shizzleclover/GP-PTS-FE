@@ -27,7 +27,7 @@ export default function AdminDashboard() {
     let mounted = true
     const loadStats = async () => {
       try {
-        const isMock = localStorage.getItem('useMockData') === 'true'
+        const isMock = false
         if (isMock) {
           if (mounted) setIsLoading(false)
           return
