@@ -7,6 +7,7 @@ import { PillButton } from '@/components/ui/pill-button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { apiFetch } from '@/lib/api'
+import { decodeJwt } from '@/lib/jwt'
 
 export default function ParentDashboard() {
   const [parentName, setParentName] = useState('Parent')
@@ -49,7 +50,16 @@ export default function ParentDashboard() {
         const studentRes = await apiFetch(`/students?parentIds=${user._id || user.id}`)
         let profile = null
         if (!studentRes.isMock && studentRes.data?.data?.length > 0) {
-          profile = studentRes.data.data[0]
+          const linked = studentRes.data.data
+          const activeStudentId =
+            user?.activeStudent?.id?.toString() ||
+            sessionStorage.getItem('activeStudentId') ||
+            decodeJwt(localStorage.getItem('authToken'))?.studentId?.toString() ||
+            null
+
+          profile = activeStudentId
+            ? linked.find((s: any) => s?._id?.toString() === activeStudentId) || linked[0]
+            : linked[0]
           setChild({
             name: `${profile.firstName} ${profile.lastName}`,
             program: profile.program || 'Unassigned',
@@ -118,7 +128,7 @@ export default function ParentDashboard() {
           Welcome back, {parentName}
         </h1>
         <p className="text-muted-foreground">
-          Here's an overview of {child?.name || 'your child'}'s academic performance and school activities
+          Here&apos;s an overview of {child?.name || 'your child'}&apos;s academic performance and school activities
         </p>
       </div>
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Users, BookOpen, UserCheck, TrendingUp } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { PillButton } from '@/components/ui/pill-button'
+import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { apiFetch } from '@/lib/api'
 

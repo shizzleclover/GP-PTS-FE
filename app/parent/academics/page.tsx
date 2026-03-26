@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { apiFetch } from '@/lib/api'
 import Link from 'next/link'
 import { PillButton } from '@/components/ui/pill-button'
+import { decodeJwt } from '@/lib/jwt'
 
 interface GradeRecord {
   code: string
@@ -66,7 +67,16 @@ export default function ParentAcademicsPage() {
         const studentRes = await apiFetch(`/students?parentIds=${user._id || user.id}`)
         let profile = null
         if (!studentRes.isMock && studentRes.data?.data?.length > 0) {
-          profile = studentRes.data.data[0]
+          const linked = studentRes.data.data
+          const activeStudentId =
+            user?.activeStudent?.id?.toString() ||
+            sessionStorage.getItem('activeStudentId') ||
+            decodeJwt(localStorage.getItem('authToken'))?.studentId?.toString() ||
+            null
+
+          profile = activeStudentId
+            ? linked.find((s: any) => s?._id?.toString() === activeStudentId) || linked[0]
+            : linked[0]
           setChild({ name: `${profile.firstName} ${profile.lastName}` })
         }
 
@@ -194,7 +204,7 @@ export default function ParentAcademicsPage() {
           Academic Performance
         </h1>
         <p className="text-muted-foreground">
-          {child.name}'s grades and academic history
+          {child.name}&apos;s grades and academic history
         </p>
       </div>
 

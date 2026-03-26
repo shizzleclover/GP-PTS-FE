@@ -202,7 +202,7 @@ export default function ParentMessagesPage() {
           Messages
         </h1>
         <p className="text-muted-foreground">
-          Communicate with lecturers about your child's progress
+          Communicate with lecturers about your child&apos;s progress
         </p>
       </div>
 

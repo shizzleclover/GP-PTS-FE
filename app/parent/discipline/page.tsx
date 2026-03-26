@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { apiFetch } from '@/lib/api'
 import Link from 'next/link'
 import { PillButton } from '@/components/ui/pill-button'
+import { decodeJwt } from '@/lib/jwt'
 
 export default function ParentDisciplinePage() {
   const [child, setChild] = useState<any>(null)
@@ -41,7 +42,16 @@ export default function ParentDisciplinePage() {
         const studentRes = await apiFetch(`/students?parentIds=${user._id || user.id}`)
         let profile = null
         if (!studentRes.isMock && studentRes.data?.data?.length > 0) {
-          profile = studentRes.data.data[0]
+          const linked = studentRes.data.data
+          const activeStudentId =
+            user?.activeStudent?.id?.toString() ||
+            sessionStorage.getItem('activeStudentId') ||
+            decodeJwt(localStorage.getItem('authToken'))?.studentId?.toString() ||
+            null
+
+          profile = activeStudentId
+            ? linked.find((s: any) => s?._id?.toString() === activeStudentId) || linked[0]
+            : linked[0]
           setChild({
             name: `${profile.firstName} ${profile.lastName}`,
             program: profile.program || 'Unassigned',

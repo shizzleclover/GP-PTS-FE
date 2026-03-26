@@ -72,7 +72,7 @@ export default function TeacherDashboard() {
           Welcome Back, {userName}
         </h1>
         <p className="text-muted-foreground">
-          Here's what's happening with your classes today
+          Here&apos;s what&apos;s happening with your classes today
         </p>
       </div>
 

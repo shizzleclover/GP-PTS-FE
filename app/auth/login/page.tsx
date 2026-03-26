@@ -54,11 +54,17 @@ export default function LoginPage() {
       }
 
       // 3. Handle Real Live API Response
-      const { token, user } = res.data
+      const { token, user, activeStudent } = res.data
 
       // Store token and user data
       localStorage.setItem('authToken', token)
-      sessionStorage.setItem('user', JSON.stringify(user))
+      sessionStorage.setItem(
+        'user',
+        JSON.stringify(activeStudent ? { ...user, activeStudent } : user)
+      )
+      if (activeStudent?.id) {
+        sessionStorage.setItem('activeStudentId', activeStudent.id)
+      }
 
       // Route based on real backend role
       if (user.role === 'admin') router.push('/admin/dashboard')
@@ -161,7 +167,7 @@ export default function LoginPage() {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Enter your password"
+                    placeholder="Enter your password (parents: child matric number)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-11 h-12 bg-muted/40 border-muted-foreground/20 focus-visible:ring-emerald-500/30 focus-visible:border-emerald-500 transition-all text-base"
