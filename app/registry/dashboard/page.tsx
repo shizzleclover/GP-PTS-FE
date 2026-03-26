@@ -1,48 +1,85 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { GraduationCap, Users, UserPlus, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
+import { apiFetch } from '@/lib/api'
 
 export default function RegistryDashboardPage() {
-    const stats = [
-        {
-            title: 'Total Students',
-            value: '2,845',
-            description: '+124 this semester',
-            icon: <GraduationCap className="h-4 w-4 text-emerald-500" />,
-            href: '/registry/students',
-        },
-        {
-            title: 'Total Lecturers',
-            value: '142',
-            description: '+8 this semester',
-            icon: <Users className="h-4 w-4 text-primary" />,
-            href: '/registry/lecturers',
-        },
-        {
-            title: 'Registered Parents',
-            value: '1,932',
-            description: '+85 this semester',
-            icon: <UserPlus className="h-4 w-4 text-blue-500" />,
-            href: '/registry/parents',
-        },
-        {
-            title: 'Total Enrollments',
-            value: '12,450',
-            description: '+4.5% from last year',
-            icon: <TrendingUp className="h-4 w-4 text-purple-500" />,
-            href: '#',
-        },
-    ]
+    const [stats, setStats] = useState([
+        { title: 'Total Students', value: '...', description: 'Registered in the system', icon: <GraduationCap className="h-4 w-4 text-emerald-500" />, href: '/registry/students' },
+        { title: 'Total Lecturers', value: '...', description: 'Active teaching staff', icon: <Users className="h-4 w-4 text-primary" />, href: '/registry/lecturers' },
+        { title: 'Registered Parents', value: '...', description: 'Linked parent accounts', icon: <UserPlus className="h-4 w-4 text-blue-500" />, href: '/registry/parents' },
+        { title: 'Total Courses', value: '...', description: 'Active course offerings', icon: <TrendingUp className="h-4 w-4 text-purple-500" />, href: '#' },
+    ])
+    const [recentUsers, setRecentUsers] = useState<any[]>([])
 
-    const recentRegistrations = [
-        { id: 'STU001', name: 'John Doe', role: 'Student', date: 'Today, 09:41 AM' },
-        { id: 'LEC042', name: 'Dr. Sarah Smith', role: 'Lecturer', date: 'Yesterday, 02:15 PM' },
-        { id: 'PAR892', name: 'Michael Johnson', role: 'Parent', date: 'Oct 24, 11:30 AM' },
-        { id: 'STU002', name: 'Emily Brown', role: 'Student', date: 'Oct 23, 04:20 PM' },
-        { id: 'STU003', name: 'David Wilson', role: 'Student', date: 'Oct 22, 10:05 AM' },
-    ]
+    useEffect(() => {
+        const loadStats = async () => {
+            try {
+                const isMock = localStorage.getItem('useMockData') === 'true'
+                if (isMock) {
+                    setStats(prev => prev.map((s, i) => ({
+                        ...s,
+                        value: ['—', '—', '—', '—'][i],
+                        description: 'Switch to Live API to see real counts'
+                    })))
+                    setRecentUsers([
+                        { name: 'John Doe', role: 'Student', createdAt: new Date().toISOString() },
+                        { name: 'Dr. Sarah Smith', role: 'Lecturer', createdAt: new Date(Date.now() - 86400000).toISOString() },
+                        { name: 'Michael Johnson', role: 'Parent', createdAt: new Date(Date.now() - 172800000).toISOString() },
+                    ])
+                    return
+                }
+
+                const [studentsRes, usersRes, coursesRes] = await Promise.all([
+                    apiFetch('/students'),
+                    apiFetch('/users'),
+                    apiFetch('/courses'),
+                ])
+
+                const students = studentsRes.data?.data || []
+                const users = usersRes.data?.data || []
+                const courses = coursesRes.data?.data || []
+
+                const lecturers = users.filter((u: any) => u.role === 'teacher')
+                const parents = users.filter((u: any) => u.role === 'parent')
+
+                setStats([
+                    { title: 'Total Students', value: students.length.toString(), description: 'Registered in the system', icon: <GraduationCap className="h-4 w-4 text-emerald-500" />, href: '/registry/students' },
+                    { title: 'Total Lecturers', value: lecturers.length.toString(), description: 'Active teaching staff', icon: <Users className="h-4 w-4 text-primary" />, href: '/registry/lecturers' },
+                    { title: 'Registered Parents', value: parents.length.toString(), description: 'Linked parent accounts', icon: <UserPlus className="h-4 w-4 text-blue-500" />, href: '/registry/parents' },
+                    { title: 'Total Courses', value: courses.length.toString(), description: 'Active course offerings', icon: <TrendingUp className="h-4 w-4 text-purple-500" />, href: '#' },
+                ])
+
+                // Recent registrations: last 5 users sorted by createdAt
+                const sorted = [...users].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5)
+                setRecentUsers(sorted)
+
+            } catch (err) {
+                console.error('Failed to load registry stats', err)
+            }
+        }
+
+        loadStats()
+    }, [])
+
+    const roleLabel: Record<string, string> = {
+        student: 'Student',
+        teacher: 'Lecturer',
+        parent: 'Parent',
+        admin: 'Admin',
+        registry: 'Registry',
+    }
+
+    const roleColor: Record<string, string> = {
+        student: 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400',
+        teacher: 'bg-primary/10 text-primary',
+        parent: 'bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400',
+        admin: 'bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400',
+        registry: 'bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400',
+    }
 
     return (
         <div className="space-y-6">
@@ -82,29 +119,37 @@ export default function RegistryDashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {recentRegistrations.map((reg, i) => (
-                                <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-muted/50 border border-border">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                                            {reg.name.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold text-foreground">{reg.name}</p>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-xs text-muted-foreground">{reg.id}</span>
-                                                <span className="w-1 h-1 rounded-full bg-border"></span>
-                                                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                                                    {reg.role}
-                                                </span>
+                            {recentUsers.length === 0 ? (
+                                <div className="py-6 text-center text-muted-foreground text-sm border border-dashed rounded-lg">
+                                    No users registered yet. Switch to Live API to see real data.
+                                </div>
+                            ) : (
+                                recentUsers.map((user, i) => (
+                                    <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-muted/50 border border-border">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                                                {(user.firstName || user.name || '?').charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-foreground">
+                                                    {user.firstName ? `${user.firstName} ${user.lastName}` : user.name}
+                                                </p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${roleColor[user.role] || 'bg-muted text-muted-foreground'}`}>
+                                                        {roleLabel[user.role] || user.role}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
+                                        <div className="text-right">
+                                            <p className="text-sm font-medium text-foreground">Registered</p>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                {new Date(user.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-sm font-medium text-foreground">Registered</p>
-                                        <p className="text-xs text-muted-foreground mt-1">{reg.date}</p>
-                                    </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </CardContent>
                 </Card>

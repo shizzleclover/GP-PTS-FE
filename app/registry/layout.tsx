@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { Home, Users, UserPlus, GraduationCap, LayoutDashboard } from 'lucide-react'
 import { SidebarLayout } from '@/components/layouts/sidebar-layout'
 import { SidebarNav } from '@/components/layouts/sidebar-nav'
@@ -8,9 +9,19 @@ import { ReactNode } from 'react'
 
 export default function RegistryLayout({ children }: { children: ReactNode }) {
     const router = useRouter()
+    const [userName, setUserName] = useState('Registry')
+
+    useEffect(() => {
+        const uStr = sessionStorage.getItem('user')
+        if (uStr) {
+            const u = JSON.parse(uStr)
+            setUserName(u.firstName ? `${u.firstName} ${u.lastName}` : u.name || u.username || 'Registry')
+        }
+    }, [])
 
     const handleLogout = () => {
         sessionStorage.removeItem('user')
+        localStorage.removeItem('authToken')
         router.push('/auth/login')
     }
 
@@ -43,7 +54,7 @@ export default function RegistryLayout({ children }: { children: ReactNode }) {
                 <SidebarNav
                     items={navItems}
                     userRole="Registry"
-                    userName="Registry Office"
+                    userName={userName}
                     onLogout={handleLogout}
                 />
             }

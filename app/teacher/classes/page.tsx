@@ -1,5 +1,6 @@
 'use client'
-
+import { useState, useEffect } from 'react'
+import { apiFetch } from '@/lib/api'
 import { BookOpen, Users, Calendar } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { PillButton } from '@/components/ui/pill-button'
@@ -16,35 +17,38 @@ interface Class {
 }
 
 export default function TeacherClassesPage() {
-  const classes: Class[] = [
-    {
-      id: '1',
-      name: 'Mathematics',
-      grade: 'Grade 10',
-      section: 'Section A',
-      students: 28,
-      schedule: 'MWF 9:00 AM',
-      color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
-    },
-    {
-      id: '2',
-      name: 'Science',
-      grade: 'Grade 10',
-      section: 'Section B',
-      students: 30,
-      schedule: 'TTh 10:30 AM',
-      color: 'bg-emerald-100 dark:bg-emerald-500/30 text-emerald-500 dark:text-emerald-400',
-    },
-    {
-      id: '3',
-      name: 'English',
-      grade: 'Grade 9',
-      section: 'Section C',
-      students: 26,
-      schedule: 'MWF 1:00 PM',
-      color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
-    },
-  ]
+  const [classes, setClasses] = useState<Class[]>([])
+
+  useEffect(() => {
+    const loadCourses = async () => {
+      try {
+        const res = await apiFetch('/courses')
+        if (res.isMock) {
+          setClasses([
+            { id: '1', name: 'Mathematics', grade: 'Grade 10', section: 'Section A', students: 28, schedule: 'MWF 9:00 AM', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' },
+            { id: '2', name: 'Science', grade: 'Grade 10', section: 'Section B', students: 30, schedule: 'TTh 10:30 AM', color: 'bg-emerald-100 dark:bg-emerald-500/30 text-emerald-500 dark:text-emerald-400' },
+            { id: '3', name: 'English', grade: 'Grade 9', section: 'Section C', students: 26, schedule: 'MWF 1:00 PM', color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' },
+          ])
+        } else {
+          setClasses(res.data.data.map((c: any, idx: number) => {
+            const colors = ['bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400', 'bg-emerald-100 dark:bg-emerald-500/30 text-emerald-500 dark:text-emerald-400', 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400', 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400']
+            return {
+              id: c._id,
+              name: c.courseName,
+              grade: 'All Levels',
+              section: c.subject,
+              students: 0,
+              schedule: 'TBD',
+              color: colors[idx % colors.length]
+            }
+          }))
+        }
+      } catch (err) {
+        console.error('Failed to load classes', err)
+      }
+    }
+    loadCourses()
+  }, [])
 
   return (
     <div className="space-y-8">
@@ -122,15 +126,15 @@ export default function TeacherClassesPage() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-lg border border-border text-center hover:bg-muted/50 transition-colors cursor-pointer">
-              <p className="text-3xl font-bold text-primary mb-1">84</p>
+              <p className="text-3xl font-bold text-primary mb-1">0</p>
               <p className="text-sm text-muted-foreground">Total Students</p>
             </div>
             <div className="p-4 rounded-lg border border-border text-center hover:bg-muted/50 transition-colors cursor-pointer">
-              <p className="text-3xl font-bold text-secondary mb-1">12</p>
+              <p className="text-3xl font-bold text-secondary mb-1">0</p>
               <p className="text-sm text-muted-foreground">Pending Grades</p>
             </div>
             <div className="p-4 rounded-lg border border-border text-center hover:bg-muted/50 transition-colors cursor-pointer">
-              <p className="text-3xl font-bold text-emerald-500 mb-1">3</p>
+              <p className="text-3xl font-bold text-emerald-500 mb-1">{classes.length}</p>
               <p className="text-sm text-muted-foreground">Classes Teaching</p>
             </div>
           </div>

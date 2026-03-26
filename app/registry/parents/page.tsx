@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { PillButton } from '@/components/ui/pill-button'
@@ -10,14 +11,62 @@ export default function RegistryParentsPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [isRegistering, setIsRegistering] = useState(false)
 
-    // Mock Parents
-    const parents = [
-        { id: 'PAR001', name: 'Michael Johnson', email: 'michael.j@example.com', phone: '+1 (555) 123-4567', students: 2, status: 'Active' },
-        { id: 'PAR002', name: 'Sarah Williams', email: 'swilliams@example.com', phone: '+1 (555) 987-6543', students: 1, status: 'Active' },
-        { id: 'PAR003', name: 'David Lee', email: 'david.lee88@example.com', phone: '+1 (555) 456-7890', students: 3, status: 'Active' },
-        { id: 'PAR004', name: 'Jennifer Martinez', email: 'jmartinez@example.com', phone: '+1 (555) 234-5678', students: 1, status: 'Inactive' },
-        { id: 'PAR005', name: 'Robert Taylor', email: 'rtaylor@example.com', phone: '+1 (555) 876-5432', students: 2, status: 'Active' },
-    ]
+    const [parents, setParents] = useState<any[]>([])
+    const [formData, setFormData] = useState({
+        firstName: '', lastName: '', email: '', phone: ''
+    })
+
+    const loadParents = async () => {
+        try {
+            const res = await apiFetch('/users')
+            if (res.isMock) {
+                setParents([
+                    { id: 'PAR001', name: 'Michael Johnson', email: 'michael.j@example.com', phone: '+1 (555) 123-4567', students: 2, status: 'Active' },
+                    { id: 'PAR002', name: 'Sarah Williams', email: 'swilliams@example.com', phone: '+1 (555) 987-6543', students: 1, status: 'Active' },
+                ])
+            } else {
+                const parentsList = res.data.data.filter((u: any) => u.role === 'parent')
+                setParents(parentsList.map((p: any) => ({
+                    id: p._id.substring(0, 8).toUpperCase(),
+                    name: `${p.firstName} ${p.lastName}`,
+                    email: p.email,
+                    phone: 'N/A',
+                    students: 0,
+                    status: 'Active'
+                })))
+            }
+        } catch (err) {
+            console.error('Failed to load parents', err)
+        }
+    }
+
+    useEffect(() => {
+        loadParents()
+    }, [])
+
+    const handleRegister = async (e: React.FormEvent) => {
+        e.preventDefault()
+        try {
+            await apiFetch('/users', {
+                method: 'POST',
+                body: JSON.stringify({
+                    username: formData.email,
+                    password: 'TempPass123!',
+                    role: 'parent',
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    email: formData.email
+                })
+            })
+
+            setIsRegistering(false)
+            setFormData({ firstName: '', lastName: '', email: '', phone: '' })
+            loadParents()
+        } catch (err) {
+            console.error('Registration failed', err)
+            alert('Failed to register parent.')
+        }
+    }
 
     const filteredParents = parents.filter(parent =>
         parent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -52,24 +101,24 @@ export default function RegistryParentsPage() {
                         </div>
                     </CardHeader>
                     <CardContent className="pt-6">
-                        <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setIsRegistering(false) }}>
+                        <form className="space-y-6" onSubmit={handleRegister}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">First Name</label>
-                                    <Input placeholder="e.g. Robert" required />
+                                    <Input placeholder="e.g. Robert" required value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Last Name</label>
-                                    <Input placeholder="e.g. Taylor" required />
+                                    <Input placeholder="e.g. Taylor" required value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })} />
                                 </div>
 
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Email Address</label>
-                                    <Input type="email" placeholder="robert.t@example.com" required />
+                                    <Input type="email" placeholder="robert.t@example.com" required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Primary Phone Number</label>
-                                    <Input type="tel" placeholder="+1 (555) 000-0000" required />
+                                    <Input type="tel" placeholder="+1 (555) 000-0000" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
                                 </div>
 
                                 <div className="space-y-2 md:col-span-2 border rounded-lg p-4 bg-muted/30">
@@ -111,7 +160,7 @@ export default function RegistryParentsPage() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-sm text-muted-foreground border border-border rounded-md px-3 py-1">
-                                    Total Registered: <span className="font-bold text-foreground">1,932</span>
+                                    Total Registered: <span className="font-bold text-foreground">{filteredParents.length}</span>
                                 </span>
                             </div>
                         </div>

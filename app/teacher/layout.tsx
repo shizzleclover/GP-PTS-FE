@@ -1,16 +1,27 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Home, BookOpen, BarChart3, MessageSquare, Users } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Home, BookOpen, BarChart3, MessageSquare, Users, Globe } from 'lucide-react'
 import { SidebarLayout } from '@/components/layouts/sidebar-layout'
 import { SidebarNav } from '@/components/layouts/sidebar-nav'
 import { ReactNode } from 'react'
 
 export default function TeacherLayout({ children }: { children: ReactNode }) {
   const router = useRouter()
+  const [userName, setUserName] = useState('Lecturer')
+
+  useEffect(() => {
+    const uStr = sessionStorage.getItem('user')
+    if (uStr) {
+      const u = JSON.parse(uStr)
+      setUserName(u.firstName ? `${u.firstName} ${u.lastName}` : u.name || u.username || 'Lecturer')
+    }
+  }, [])
 
   const handleLogout = () => {
     sessionStorage.removeItem('user')
+    localStorage.removeItem('authToken')
     router.push('/auth/login')
   }
 
@@ -39,7 +50,11 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
       label: 'Messages',
       href: '/teacher/messages',
       icon: <MessageSquare size={20} />,
-      badge: 3,
+    },
+    {
+      label: 'Cross-School',
+      href: '/teacher/cross-school',
+      icon: <Globe size={20} />,
     },
   ]
 
@@ -49,7 +64,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
         <SidebarNav
           items={navItems}
           userRole="Lecturer"
-          userName="John Smith"
+          userName={userName}
           onLogout={handleLogout}
         />
       }

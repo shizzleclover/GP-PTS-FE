@@ -1,17 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Send, Search, Paperclip, Smile } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { PillButton } from '@/components/ui/pill-button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
+import { apiFetch } from '@/lib/api'
 
-interface Message {
+interface Contact {
   id: string
-  sender: string
+  name: string
   avatar: string
   relationship: string
   lastMessage: string
@@ -25,108 +26,173 @@ interface ChatMessage {
   content: string
   timestamp: string
   isMe: boolean
+  createdAt: string
 }
 
 export default function TeacherMessagesPage() {
   const [selectedContact, setSelectedContact] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [messageText, setMessageText] = useState('')
-  const [contacts, setContacts] = useState<Message[]>([
-    {
-      id: '1',
-      sender: 'Sarah Johnson',
-      avatar: 'SJ',
-      relationship: 'Parent of Emma Smith',
-      lastMessage: 'Thank you for the update on Emma\'s progress',
-      timestamp: '2 hours ago',
-      unread: true,
-    },
-    {
-      id: '2',
-      sender: 'Michael Brown',
-      avatar: 'MB',
-      relationship: 'Parent of Liam Brown',
-      lastMessage: 'When is the next exam scheduled?',
-      timestamp: '5 hours ago',
-      unread: true,
-    },
-    {
-      id: '3',
-      sender: 'Robert Wilson',
-      avatar: 'RW',
-      relationship: 'Parent of Noah Wilson',
-      lastMessage: 'Great! Looking forward to the progress report',
-      timestamp: '1 day ago',
-      unread: false,
-    },
-    {
-      id: '4',
-      sender: 'Emily Davis',
-      avatar: 'ED',
-      relationship: 'Parent of Olivia Brown',
-      lastMessage: 'Could you clarify the homework assignment?',
-      timestamp: '2 days ago',
-      unread: false,
-    },
-  ])
+  const [contacts, setContacts] = useState<Contact[]>([])
+  const [allMessages, setAllMessages] = useState<any[]>([])
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [isSending, setIsSending] = useState(false)
 
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      sender: 'Sarah Johnson',
-      content: 'Hi John, I wanted to check on Emma\'s progress in Mathematics',
-      timestamp: '2 hours ago',
-      isMe: false,
-    },
-    {
-      id: '2',
-      sender: 'You',
-      content: 'Hi Sarah! Emma is doing really well. She scored 92% on the last exam.',
-      timestamp: '2 hours ago',
-      isMe: true,
-    },
-    {
-      id: '3',
-      sender: 'Sarah Johnson',
-      content: 'That\'s wonderful! She\'s been studying hard at home too.',
-      timestamp: '2 hours ago',
-      isMe: false,
-    },
-    {
-      id: '4',
-      sender: 'Sarah Johnson',
-      content: 'Thank you for the update on Emma\'s progress',
-      timestamp: '2 hours ago',
-      isMe: false,
-    },
-  ])
+  useEffect(() => {
+    const uStr = sessionStorage.getItem('user')
+    if (uStr) {
+      setCurrentUser(JSON.parse(uStr))
+    }
+
+    const loadMessages = async () => {
+      try {
+        const res = await apiFetch('/messages')
+        if (res.isMock) {
+          setContacts([
+            { id: '1', name: 'Sarah Johnson', avatar: 'SJ', relationship: 'Parent', lastMessage: 'Thank you for the update', timestamp: new Date().toISOString(), unread: true },
+            { id: '2', name: 'Michael Brown', avatar: 'MB', relationship: 'Parent', lastMessage: 'When is the exam?', timestamp: new Date(Date.now() - 3600000).toISOString(), unread: false },
+          ])
+          setAllMessages([
+            { _id: 'm1', senderId: { _id: '1', firstName: 'Sarah', lastName: 'Johnson' }, receiverId: { _id: 'me', role: 'teacher' }, body: 'Thank you for the update', createdAt: new Date().toISOString() },
+            { _id: 'm2', senderId: { _id: '2', firstName: 'Michael', lastName: 'Brown' }, receiverId: { _id: 'me', role: 'teacher' }, body: 'When is the exam?', createdAt: new Date(Date.now() - 3600000).toISOString() },
+          ])
+        } else {
+          const msgs = res.data?.data || []
+          setAllMessages(msgs)
+
+          const uDataStr = sessionStorage.getItem('user')
+          const uData = uDataStr ? JSON.parse(uDataStr) : null;
+
+          const contactsMap = new Map<string, Contact>()
+
+          msgs.forEach((m: any) => {
+            let contactUser = m.senderId
+            let isMe = false
+
+            const myId = uData?._id || uData?.id
+
+            if (myId && m.senderId && m.senderId._id === myId) {
+              contactUser = m.receiverId
+              isMe = true
+            } else if (!myId && m.senderId && (m.senderId.role === 'teacher' || m.senderId.role === 'admin')) {
+              contactUser = m.receiverId
+              isMe = true
+            }
+
+            if (!contactUser) return;
+            const cid = contactUser._id
+
+            if (!contactsMap.has(cid)) {
+              contactsMap.set(cid, {
+                id: cid,
+                name: `${contactUser.firstName} ${contactUser.lastName}`,
+                avatar: `${contactUser.firstName?.[0] || 'U'}${contactUser.lastName?.[0] || ''}`,
+                relationship: contactUser.role === 'parent' ? 'Parent' : 'Student',
+                lastMessage: m.body,
+                timestamp: m.createdAt,
+                unread: !isMe && !m.isRead
+              })
+            } else {
+              const existing = contactsMap.get(cid)!
+              if (new Date(m.createdAt) > new Date(existing.timestamp)) {
+                existing.lastMessage = m.body;
+                existing.timestamp = m.createdAt;
+                if (!isMe && !m.isRead) existing.unread = true;
+              }
+            }
+          })
+
+          setContacts(Array.from(contactsMap.values()).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()))
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    loadMessages()
+  }, [])
 
   const filteredContacts = contacts.filter(contact =>
-    contact.sender.toLowerCase().includes(searchQuery.toLowerCase())
+    contact.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const selectedContactData = selectedContact ? contacts.find(c => c.id === selectedContact) : null
 
-  const handleSendMessage = () => {
-    if (messageText.trim() && selectedContact) {
-      const newMessage: ChatMessage = {
-        id: Date.now().toString(),
-        sender: 'You',
-        content: messageText,
-        timestamp: 'Just now',
-        isMe: true,
-      }
-      setChatMessages([...chatMessages, newMessage])
-      setMessageText('')
+  const chatMessages: ChatMessage[] = allMessages
+    .filter(m => {
+      if (m.senderId && m.senderId._id === selectedContact) return true
+      if (m.receiverId && m.receiverId._id === selectedContact) return true
+      if (m.senderId && typeof m.senderId === 'string' && m.senderId === selectedContact) return true
+      if (m.receiverId && typeof m.receiverId === 'string' && m.receiverId === selectedContact) return true
+      return false
+    })
+    .map(m => {
+      const uDataStr = sessionStorage.getItem('user')
+      const uData = uDataStr ? JSON.parse(uDataStr) : null;
+      const myId = uData?._id || uData?.id
+      const isMe = (m.senderId && m.senderId._id === myId) || (typeof m.senderId === 'string' && m.senderId === myId)
 
-      // Update contact with new message
-      setContacts(contacts.map(c =>
-        c.id === selectedContact
-          ? { ...c, lastMessage: messageText, timestamp: 'Just now', unread: false }
-          : c
-      ))
+      return {
+        id: m._id,
+        sender: isMe ? 'You' : `${m.senderId.firstName || 'Sender'}`,
+        content: m.body,
+        timestamp: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isMe,
+        createdAt: m.createdAt
+      }
+    })
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !selectedContact) return;
+
+    if (allMessages.length > 0 && allMessages[0]._id.startsWith('m')) {
+      alert('Cannot send live messages in dummy mode. Please switch to Live API.');
+      return;
+    }
+
+    setIsSending(true)
+    try {
+      const res = await apiFetch('/messages', {
+        method: 'POST',
+        body: JSON.stringify({
+          receiverId: selectedContact,
+          subject: 'Reply',
+          body: messageText
+        })
+      })
+
+      if (!res.isMock) {
+        setAllMessages(prev => [...prev, {
+          ...res.data.data,
+          senderId: { _id: currentUser?._id || 'me', firstName: 'You' },
+          receiverId: { _id: selectedContact }
+        }])
+
+        setContacts(prev => prev.map(c =>
+          c.id === selectedContact ? { ...c, lastMessage: messageText, timestamp: new Date().toISOString(), unread: false } : c
+        ).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()))
+
+        setMessageText('')
+      }
+    } catch (e) {
+      alert('Failed to send message')
+      console.error(e)
+    } finally {
+      setIsSending(false)
     }
   }
+
+  useEffect(() => {
+    if (selectedContact) {
+      allMessages.forEach(m => {
+        if (m.senderId && m.senderId._id === selectedContact && !m.isRead) {
+          apiFetch(`/messages/${m._id}/read`, { method: 'PUT', body: '{}' }).catch(console.error)
+          m.isRead = true;
+        }
+      })
+      setContacts(prev => prev.map(c => c.id === selectedContact ? { ...c, unread: false } : c))
+    }
+  }, [selectedContact, allMessages])
 
   return (
     <div className="space-y-8">
@@ -145,7 +211,7 @@ export default function TeacherMessagesPage() {
         {/* Contacts List */}
         <Card className="lg:col-span-1 overflow-hidden flex flex-col">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Messages</CardTitle>
+            <CardTitle className="text-lg">Inbox</CardTitle>
           </CardHeader>
           <CardContent className="flex-1 overflow-hidden p-4 flex flex-col gap-3">
             {/* Search */}
@@ -165,37 +231,39 @@ export default function TeacherMessagesPage() {
                 <div
                   key={contact.id}
                   onClick={() => setSelectedContact(contact.id)}
-                  className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                    selectedContact === contact.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted/50 hover:bg-muted'
-                  }`}
+                  className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedContact === contact.id
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted/50 hover:bg-muted'
+                    }`}
                 >
                   <div className="flex items-start gap-2">
                     <Avatar className="h-8 w-8 flex-shrink-0">
-                      <AvatarFallback className={selectedContact === contact.id ? 'bg-primary-foreground text-primary' : ''}>
+                      <AvatarFallback className={selectedContact === contact.id ? 'bg-primary-foreground text-primary' : 'bg-primary/10 text-primary'}>
                         {contact.avatar}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1">
-                        <p className="font-medium text-sm">{contact.sender}</p>
+                      <div className="flex items-center justify-between gap-1">
+                        <p className={`font-medium text-sm truncate ${contact.unread ? 'font-bold' : ''}`}>{contact.name}</p>
                         {contact.unread && (
-                          <Badge className="bg-destructive h-5 px-1" variant="destructive">
+                          <Badge className="bg-destructive h-5 px-1 py-0 text-[10px]" variant="destructive">
                             New
                           </Badge>
                         )}
                       </div>
-                      <p className={`text-xs truncate ${selectedContact === contact.id ? 'opacity-90' : 'text-muted-foreground'}`}>
+                      <p className={`text-xs truncate ${selectedContact === contact.id ? 'opacity-90' : 'text-muted-foreground'} ${contact.unread ? 'text-foreground font-medium' : ''}`}>
                         {contact.lastMessage}
                       </p>
-                      <p className={`text-xs mt-1 ${selectedContact === contact.id ? 'opacity-75' : 'text-muted-foreground'}`}>
-                        {contact.timestamp}
+                      <p className={`text-[10px] mt-1 ${selectedContact === contact.id ? 'opacity-75' : 'text-muted-foreground'}`}>
+                        {new Date(contact.timestamp).toLocaleDateString()} {new Date(contact.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>
                 </div>
               ))}
+              {filteredContacts.length === 0 && (
+                <div className="text-center text-xs text-muted-foreground pt-4">No conversations found.</div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -207,10 +275,10 @@ export default function TeacherMessagesPage() {
             <CardHeader className="pb-3 border-b">
               <div className="flex items-center gap-3">
                 <Avatar>
-                  <AvatarFallback>{selectedContactData.avatar}</AvatarFallback>
+                  <AvatarFallback className="bg-primary/10 text-primary">{selectedContactData.avatar}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <CardTitle className="text-base">{selectedContactData.sender}</CardTitle>
+                  <CardTitle className="text-base">{selectedContactData.name}</CardTitle>
                   <CardDescription>{selectedContactData.relationship}</CardDescription>
                 </div>
               </div>
@@ -224,11 +292,10 @@ export default function TeacherMessagesPage() {
                   className={`flex ${msg.isMe ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
-                      msg.isMe
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    }`}
+                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${msg.isMe
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted'
+                      }`}
                   >
                     <p className="text-sm">{msg.content}</p>
                     <p className={`text-xs mt-1 ${msg.isMe ? 'opacity-70' : 'text-muted-foreground'}`}>
@@ -237,33 +304,31 @@ export default function TeacherMessagesPage() {
                   </div>
                 </div>
               ))}
+              {chatMessages.length === 0 && (
+                <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+                  No messages yet. Send one to start the conversation!
+                </div>
+              )}
             </CardContent>
 
             {/* Input Area */}
             <div className="border-t p-4 space-y-3">
-              <div className="flex gap-2">
-                <PillButton size="icon-sm" variant="ghost">
-                  <Paperclip className="h-5 w-5" />
-                </PillButton>
-                <PillButton size="icon-sm" variant="ghost">
-                  <Smile className="h-5 w-5" />
-                </PillButton>
-              </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-end">
                 <Textarea
                   placeholder="Type your message..."
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && e.ctrlKey) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
                       handleSendMessage()
                     }
                   }}
-                  className="min-h-10 max-h-20"
+                  className="min-h-[40px] max-h-32"
                 />
                 <PillButton
                   onClick={handleSendMessage}
-                  disabled={!messageText.trim()}
+                  disabled={!messageText.trim() || isSending}
                   size="icon"
                 >
                   <Send className="h-5 w-5" />
@@ -273,8 +338,12 @@ export default function TeacherMessagesPage() {
           </Card>
         ) : (
           <Card className="lg:col-span-2 flex items-center justify-center">
-            <div className="text-center">
-              <p className="text-muted-foreground">Select a conversation to start messaging</p>
+            <div className="text-center space-y-2">
+              <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Send className="w-8 h-8 text-muted-foreground opacity-50 ml-1" />
+              </div>
+              <p className="text-muted-foreground font-medium">Select a conversation to start messaging</p>
+              <p className="text-xs text-muted-foreground">Click on a contact from the inbox list on the left.</p>
             </div>
           </Card>
         )}

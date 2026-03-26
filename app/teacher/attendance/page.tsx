@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Calendar, Check, X } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { PillButton } from '@/components/ui/pill-button'
@@ -9,24 +9,95 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Checkbox } from '@/components/ui/checkbox'
+import { apiFetch } from '@/lib/api'
 
 interface AttendanceRecord {
   id: string
   rollNo: string
   name: string
   present: boolean | null
+  attendanceId?: string
 }
 
 export default function TeacherAttendancePage() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
-  const [selectedClass, setSelectedClass] = useState('math')
-  const [records, setRecords] = useState<AttendanceRecord[]>([
-    { id: '1', rollNo: '001', name: 'Emma Smith', present: true },
-    { id: '2', rollNo: '002', name: 'Liam Johnson', present: true },
-    { id: '3', rollNo: '003', name: 'Olivia Brown', present: false },
-    { id: '4', rollNo: '004', name: 'Noah Wilson', present: true },
-    { id: '5', rollNo: '005', name: 'Ava Davis', present: null },
-  ])
+  const [courses, setCourses] = useState<any[]>([])
+  const [selectedClass, setSelectedClass] = useState('')
+  const [records, setRecords] = useState<AttendanceRecord[]>([])
+  const [isSaving, setIsSaving] = useState(false)
+
+  // Load courses
+  useEffect(() => {
+    const loadCourses = async () => {
+      try {
+        const res = await apiFetch('/courses')
+        if (!res.isMock && res.data?.data) {
+          setCourses(res.data.data)
+          if (res.data.data.length > 0) {
+            setSelectedClass(res.data.data[0]._id)
+          }
+        } else {
+          setCourses([
+            { _id: 'math', courseName: 'CSC 301 — Data Structures' },
+            { _id: 'science', courseName: 'CSC 305 — Operating Systems' },
+            { _id: 'english', courseName: 'MTH 201 — Linear Algebra' },
+          ])
+          setSelectedClass('math')
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    loadCourses()
+  }, [])
+
+  // Load students + attendance
+  useEffect(() => {
+    if (!selectedClass) return;
+
+    const loadData = async () => {
+      try {
+        const isMathMock = selectedClass === 'math' || selectedClass === 'science' || selectedClass === 'english'
+
+        if (isMathMock) {
+          setRecords([
+            { id: '1', rollNo: '001', name: 'Emma Smith', present: true },
+            { id: '2', rollNo: '002', name: 'Liam Johnson', present: true },
+            { id: '3', rollNo: '003', name: 'Olivia Brown', present: false },
+            { id: '4', rollNo: '004', name: 'Noah Wilson', present: true },
+            { id: '5', rollNo: '005', name: 'Ava Davis', present: null },
+          ])
+          return
+        }
+
+        const [studentsRes, attRes] = await Promise.all([
+          apiFetch(`/students?courseIds=${selectedClass}`),
+          apiFetch(`/attendance`)
+        ])
+
+        if (!studentsRes.isMock) {
+          const fetchedStudents = studentsRes.data.data;
+          const allAtt = attRes.data?.data || [];
+
+          const fetchedAtt = allAtt.filter((a: any) => a.date && new Date(a.date).toISOString().split('T')[0] === selectedDate)
+
+          setRecords(fetchedStudents.map((s: any) => {
+            const aRecord = fetchedAtt.find((a: any) => a.studentId === s._id)
+            return {
+              id: s._id,
+              name: `${s.firstName} ${s.lastName}`,
+              rollNo: s.studentId,
+              present: aRecord ? (aRecord.status === 'present' ? true : false) : null,
+              attendanceId: aRecord ? aRecord._id : undefined
+            }
+          }))
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    loadData()
+  }, [selectedClass, selectedDate])
 
   const handleAttendanceChange = (id: string, present: boolean) => {
     setRecords(records.map(r =>
@@ -34,15 +105,45 @@ export default function TeacherAttendancePage() {
     ))
   }
 
+  const saveAttendance = async () => {
+    if (courses.length > 0 && (courses[0]._id === 'math' || courses[0]._id === 'science' || courses[0]._id === 'english')) {
+      alert('Cannot save in dummy mode. Switch to Live API.');
+      return;
+    }
+    setIsSaving(true)
+    try {
+      const promises = records.filter(r => r.present !== null).map(r => {
+        const status = r.present ? 'present' : 'absent'
+        if (r.attendanceId) {
+          return apiFetch(`/attendance/${r.attendanceId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ status })
+          })
+        } else {
+          return apiFetch('/attendance', {
+            method: 'POST',
+            body: JSON.stringify({
+              studentId: r.id,
+              date: selectedDate,
+              status
+            })
+          })
+        }
+      })
+      await Promise.all(promises)
+      alert('Attendance saved successfully!')
+      window.location.reload()
+    } catch (e) {
+      alert('Error saving attendance')
+      console.error(e)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   const presentCount = records.filter(r => r.present === true).length
   const absentCount = records.filter(r => r.present === false).length
   const pendingCount = records.filter(r => r.present === null).length
-
-  const getAttendancePercentage = () => {
-    const marked = records.filter(r => r.present !== null)
-    if (marked.length === 0) return 0
-    return ((presentCount / marked.length) * 100).toFixed(1)
-  }
 
   return (
     <div className="space-y-8">
@@ -76,12 +177,12 @@ export default function TeacherAttendancePage() {
               <label className="text-sm font-medium text-foreground mb-2 block">Select Class</label>
               <Select value={selectedClass} onValueChange={setSelectedClass}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select class..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="math">CSC 301 — Data Structures</SelectItem>
-                  <SelectItem value="science">CSC 305 — Operating Systems</SelectItem>
-                  <SelectItem value="english">MTH 201 — Linear Algebra</SelectItem>
+                  {courses.map(c => (
+                    <SelectItem key={c._id} value={c._id}>{c.courseName}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -191,14 +292,20 @@ export default function TeacherAttendancePage() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {records.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-6">No students found.</TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
 
           {/* Save Button */}
           <div className="mt-6 flex gap-2">
-            <PillButton>Save Attendance</PillButton>
-            <PillButton variant="outline">Cancel</PillButton>
+            <PillButton onClick={saveAttendance} disabled={isSaving || (presentCount + absentCount === 0)}>
+              {isSaving ? 'Saving...' : 'Save Attendance'}
+            </PillButton>
           </div>
         </CardContent>
       </Card>

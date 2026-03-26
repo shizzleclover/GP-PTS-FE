@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { PillButton } from '@/components/ui/pill-button'
@@ -10,14 +11,64 @@ export default function RegistryLecturersPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [isRegistering, setIsRegistering] = useState(false)
 
-    // Mock Lecturers
-    const lecturers = [
-        { id: 'LEC001', name: 'Dr. Sarah Smith', department: 'Computer Science', courses: 3, status: 'Active', joined: 'Aug 2018' },
-        { id: 'LEC002', name: 'Prof. James Wilson', department: 'Mathematics', courses: 2, status: 'Active', joined: 'Jan 2015' },
-        { id: 'LEC003', name: 'Dr. Emily Chen', department: 'Software Engineering', courses: 4, status: 'Active', joined: 'Sept 2020' },
-        { id: 'LEC004', name: 'Mr. Robert Davis', department: 'Information Systems', courses: 2, status: 'On Leave', joined: 'Aug 2021' },
-        { id: 'LEC005', name: 'Dr. Michael Brown', department: 'Cybersecurity', courses: 3, status: 'Active', joined: 'Feb 2019' },
-    ]
+    const [lecturers, setLecturers] = useState<any[]>([])
+    const [formData, setFormData] = useState({
+        firstName: '', lastName: '', email: '', phone: '', department: 'Computer Science', jobTitle: 'Professor'
+    })
+
+    const loadLecturers = async () => {
+        try {
+            const res = await apiFetch('/users')
+            if (res.isMock) {
+                setLecturers([
+                    { id: 'LEC001', name: 'Dr. Sarah Smith', department: 'Computer Science', courses: 3, status: 'Active', joined: 'Aug 2018' },
+                    { id: 'LEC002', name: 'Prof. James Wilson', department: 'Mathematics', courses: 2, status: 'Active', joined: 'Jan 2015' },
+                ])
+            } else {
+                // Filter only teachers from the user pool
+                const teachers = res.data.data.filter((u: any) => u.role === 'teacher')
+                setLecturers(teachers.map((t: any) => ({
+                    id: t._id.substring(0, 8).toUpperCase(),
+                    name: `${t.firstName} ${t.lastName}`,
+                    department: t.department || 'General',
+                    courses: 0,
+                    status: 'Active',
+                    joined: new Date(t.createdAt).toLocaleDateString()
+                })))
+            }
+        } catch (err) {
+            console.error('Failed to load lecturers', err)
+        }
+    }
+
+    useEffect(() => {
+        loadLecturers()
+    }, [])
+
+    const handleRegister = async (e: React.FormEvent) => {
+        e.preventDefault()
+        try {
+            await apiFetch('/users', {
+                method: 'POST',
+                body: JSON.stringify({
+                    username: formData.email,
+                    password: 'TempPass123!',
+                    role: 'teacher',
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    email: formData.email,
+                    department: formData.department
+                })
+            })
+
+            setIsRegistering(false)
+            setFormData({ firstName: '', lastName: '', email: '', phone: '', department: 'Computer Science', jobTitle: 'Professor' })
+            loadLecturers()
+        } catch (err) {
+            console.error('Registration failed', err)
+            alert('Failed to register lecturer.')
+        }
+    }
 
     const filteredLecturers = lecturers.filter(lecturer =>
         lecturer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -52,29 +103,29 @@ export default function RegistryLecturersPage() {
                         </div>
                     </CardHeader>
                     <CardContent className="pt-6">
-                        <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setIsRegistering(false) }}>
+                        <form className="space-y-6" onSubmit={handleRegister}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">First Name</label>
-                                    <Input placeholder="e.g. Sarah" required />
+                                    <Input placeholder="e.g. Sarah" required value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Last Name</label>
-                                    <Input placeholder="e.g. Smith" required />
+                                    <Input placeholder="e.g. Smith" required value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })} />
                                 </div>
 
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Email Address</label>
-                                    <Input type="email" placeholder="sarah.smith@university.edu" required />
+                                    <Input type="email" placeholder="sarah.smith@university.edu" required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Phone Number</label>
-                                    <Input type="tel" placeholder="+1 (555) 000-0000" />
+                                    <Input type="tel" placeholder="+1 (555) 000-0000" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
                                 </div>
 
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Department</label>
-                                    <select className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50">
+                                    <select value={formData.department} onChange={e => setFormData({ ...formData, department: e.target.value })} className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50">
                                         <option>Computer Science</option>
                                         <option>Software Engineering</option>
                                         <option>Mathematics</option>
@@ -84,7 +135,7 @@ export default function RegistryLecturersPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Job Title</label>
-                                    <select className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50">
+                                    <select value={formData.jobTitle} onChange={e => setFormData({ ...formData, jobTitle: e.target.value })} className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50">
                                         <option>Professor</option>
                                         <option>Associate Professor</option>
                                         <option>Assistant Professor</option>
@@ -123,7 +174,7 @@ export default function RegistryLecturersPage() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-sm text-muted-foreground border border-border rounded-md px-3 py-1">
-                                    Total Active: <span className="font-bold text-foreground">142</span>
+                                    Total Active: <span className="font-bold text-foreground">{filteredLecturers.length}</span>
                                 </span>
                             </div>
                         </div>

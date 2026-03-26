@@ -8,6 +8,7 @@ import { PillButton } from '@/components/ui/pill-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { apiFetch } from '@/lib/api'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -22,33 +23,51 @@ export default function LoginPage() {
     setError('')
 
     try {
-      // Simulate authentication - replace with real API call
-      if (email && password) {
-        // Mock user detection by email domain/pattern
+      if (!email || !password) {
+        setError('Please enter email and password')
+        setIsLoading(false)
+        return
+      }
+
+      // 1. Hit the global API Wrapper
+      const res = await apiFetch('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ username: email, password }),
+        requireAuth: false // We don't have a token yet
+      })
+
+      // 2. Handle Mock Mode Local Fallback
+      if (res.isMock) {
         let role = 'parent'
         if (email.includes('admin')) role = 'admin'
         else if (email.includes('teacher') || email.includes('lecturer') || email.includes('professor')) role = 'teacher'
-        else if (email.includes('student')) role = 'student'
         else if (email.includes('registry')) role = 'registry'
 
-        // Store user session (mock)
-        sessionStorage.setItem('user', JSON.stringify({
-          email,
-          role,
-          name: email.split('@')[0],
-        }))
+        sessionStorage.setItem('user', JSON.stringify({ email, role, name: email.split('@')[0] }))
 
-        // Redirect based on role
         if (role === 'admin') router.push('/admin/dashboard')
         else if (role === 'teacher') router.push('/teacher/dashboard')
-        else if (role === 'student') router.push('/student/dashboard')
         else if (role === 'registry') router.push('/registry/dashboard')
         else router.push('/parent/dashboard')
-      } else {
-        setError('Please enter email and password')
+
+        return
       }
-    } catch (err) {
-      setError('Login failed. Please try again.')
+
+      // 3. Handle Real Live API Response
+      const { token, user } = res.data
+
+      // Store token and user data
+      localStorage.setItem('authToken', token)
+      sessionStorage.setItem('user', JSON.stringify(user))
+
+      // Route based on real backend role
+      if (user.role === 'admin') router.push('/admin/dashboard')
+      else if (user.role === 'teacher') router.push('/teacher/dashboard')
+      else if (user.role === 'registry') router.push('/registry/dashboard')
+      else router.push('/parent/dashboard')
+
+    } catch (err: any) {
+      setError(err.message || 'Login failed. Please verify your credentials.')
     } finally {
       setIsLoading(false)
     }
@@ -189,10 +208,7 @@ export default function LoginPage() {
                     <span className="block font-semibold text-slate-800 group-hover:text-emerald-700 mb-1 leading-none">Lecturer</span>
                     <code className="text-slate-500 group-hover:text-emerald-600 font-mono text-xs">teacher@...</code>
                   </div>
-                  <div className="p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 hover:shadow-md transition-all group" onClick={() => setEmail('student@university.edu')}>
-                    <span className="block font-semibold text-slate-800 group-hover:text-emerald-700 mb-1 leading-none">Student</span>
-                    <code className="text-slate-500 group-hover:text-emerald-600 font-mono text-xs">student@...</code>
-                  </div>
+
                   <div className="p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 hover:shadow-md transition-all group lg:col-span-2" onClick={() => setEmail('parent@university.edu')}>
                     <span className="block font-semibold text-slate-800 group-hover:text-emerald-700 mb-1 leading-none">Parent</span>
                     <code className="text-slate-500 group-hover:text-emerald-600 font-mono text-xs">parent@...</code>
